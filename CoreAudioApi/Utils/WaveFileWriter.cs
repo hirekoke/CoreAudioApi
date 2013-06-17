@@ -14,17 +14,25 @@ namespace CoreAudioApi.Utils
         private int _chunkSizePosition;
         private int _dataSizePosition;
         private int _sampleNum;
-        private CoreAudioApi.WAVEFORMATEXTENSIBLE _format = null;
+
+        private int _nChannels;
+        private int _sampleRate;
+        private int _bitsPerSample;
+
+        private bool _disposed = false;
 
         private object lockObj = new object();
 
         public string FilePath { get { return _filePath; } }
 
-        public WaveFileWriter(CoreAudioApi.WAVEFORMATEXTENSIBLE format,
+        public WaveFileWriter(int nChannels, int sampleRate, int bitsPerSample,
             string filePath, FileMode mode=FileMode.Create, FileAccess access=FileAccess.Write)
         {
+            _nChannels = nChannels;
+            _sampleRate = sampleRate;
+            _bitsPerSample = bitsPerSample;
+
             _filePath = filePath;
-            _format = format;
             lock (lockObj)
             {
                 _writer = new BinaryWriter(new FileStream(_filePath, FileMode.Create, FileAccess.Write));
@@ -64,16 +72,16 @@ namespace CoreAudioApi.Utils
                 // format tag
                 _writer.Write((ushort)CoreAudioApi.WaveFormatTag.WAVE_FORMAT_PCM);
                 // channels
-                _writer.Write((ushort)_format.nChannels);
+                _writer.Write((ushort)_nChannels);
                 // sampling rate
-                _writer.Write((uint)_format.nSamplesPerSec);
+                _writer.Write((uint)_sampleRate);
                 // byte/sec
-                _writer.Write((uint)(_format.nSamplesPerSec/*samp*/ *
-                    _format.nChannels/*channel*/ * _format.wBitsPerSample/*bit*/ / 8.0));
+                _writer.Write((uint)(_sampleRate/*samp*/ *
+                    _nChannels/*channel*/ * _bitsPerSample/*bit*/ / 8.0));
                 // block size (byte/sample * channel)
-                _writer.Write((ushort)(_format.wBitsPerSample/*bit*/ / 8.0 * _format.nChannels/*channel*/));
+                _writer.Write((ushort)(_bitsPerSample/*bit*/ / 8.0 * _nChannels/*channel*/));
                 // bit/sample
-                _writer.Write((ushort)_format.wBitsPerSample/*bit*/);
+                _writer.Write((ushort)_bitsPerSample/*bit*/);
 
                 // data tag
                 _writer.Write(new char[] { 'd', 'a', 't', 'a' });
@@ -87,11 +95,14 @@ namespace CoreAudioApi.Utils
 
         private void writeEnd()
         {
+            if (_disposed) return;
+            _disposed = true;
+
             lock (lockObj)
             {
-                if (_writer == null || !_writer.BaseStream.CanWrite) return;
+                if (_writer == null || _writer.BaseStream == null || !_writer.BaseStream.CanWrite) return;
 
-                int dataSize = (int)(_sampleNum * _format.nChannels/*channel*/ * _format.wBitsPerSample/*bit*/ / 8.0);
+                int dataSize = (int)(_sampleNum * _nChannels/*channel*/ * _bitsPerSample/*bit*/ / 8.0);
                 _writer.Seek(_chunkSizePosition, SeekOrigin.Begin);
                 _writer.Write((uint)(dataSize + 36));
                 _writer.Seek(_dataSizePosition, SeekOrigin.Begin);
@@ -119,12 +130,12 @@ namespace CoreAudioApi.Utils
                     _sampleNum += len;
                 }
 
-                switch (_format.wBitsPerSample)
+                switch (_bitsPerSample)
                 {
                     case 8:
                         for (int j = 0; j < len; j++)
                         {
-                            for (int i = 0; i < _format.nChannels; i++)
+                            for (int i = 0; i < _nChannels; i++)
                             {
                                 byte b = (byte)((data[i][j] * 0.5 + 0.5) * byte.MaxValue);
                                 _writer.Write(b);
@@ -134,7 +145,7 @@ namespace CoreAudioApi.Utils
                     case 16:
                         for (int j = 0; j < len; j++)
                         {
-                            for (int i = 0; i < _format.nChannels; i++)
+                            for (int i = 0; i < _nChannels; i++)
                             {
                                 short s = (short)(data[i][j] * short.MaxValue);
                                 _writer.Write(s);
@@ -154,9 +165,9 @@ namespace CoreAudioApi.Utils
             lock (lockObj)
             {
                 if (_writer == null || !_writer.BaseStream.CanWrite) return;
-                _sampleNum += (int)(data.Length / (double)_format.nChannels);
+                _sampleNum += (int)(data.Length / (double)_nChannels);
 
-                switch (_format.wBitsPerSample)
+                switch (_bitsPerSample)
                 {
                     case 8:
                         for (int j = 0; j < data.Length; j++)
@@ -183,7 +194,7 @@ namespace CoreAudioApi.Utils
             lock (lockObj)
             {
                 if (_writer == null || !_writer.BaseStream.CanWrite) return;
-                _sampleNum += (int)(data.Length / (double)(_format.nChannels * _format.wBitsPerSample / 8.0));
+                _sampleNum += (int)(data.Length / (double)(_nChannels * _bitsPerSample / 8.0));
 
                 for (int j = 0; j < data.Length; j++)
                 {

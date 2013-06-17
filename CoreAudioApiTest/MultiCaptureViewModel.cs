@@ -18,6 +18,8 @@ namespace CoreAudioApiTest
 
         public MultiCaptureViewModel()
         {
+            //ExclusiveAudioInput ai = new ExclusiveAudioInput();
+
             _audioInput = new SharedMultiAudioInput();
 
             _audioInput.DeviceInfoUpdated += (s, e) =>
@@ -112,7 +114,8 @@ namespace CoreAudioApiTest
                     fmt.wValidBitsPerSample = 16;
                     fmt.nAvgBytesPerSec = (uint)(fmt.nChannels * fmt.nSamplesPerSec * fmt.wBitsPerSample / 8.0);
 
-                    WaveFileWriter writer = new WaveFileWriter(fmt, string.Format("{0}.wav", devId));
+                    WaveFileWriter writer = new WaveFileWriter(fmt.nChannels, (int)fmt.nSamplesPerSec, fmt.wBitsPerSample, 
+                        string.Format("{0}.wav", devId));
                     lock (_wavWriters)
                     {
                         _wavWriters.Add(devId, writer);

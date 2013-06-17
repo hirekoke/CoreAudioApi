@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="enumerations\AudioError.cs" />
     <Compile Include="impl\AudioCaptureClient.cs" />
     <Compile Include="impl\AudioClient.cs" />
     <Compile Include="impl\AudioClock.cs" />
@@ -150,6 +151,7 @@
     <Compile Include="structure\PropVariant.cs" />
     <Compile Include="impl\SessionCollection.cs" />
     <Compile Include="impl\SimpleAudioVolume.cs" />
+    <Compile Include="Utils\ExclusiveAudioInput.cs" />
     <Compile Include="Utils\SharedAudioInput.cs" />
     <Compile Include="Utils\WaveFileWriter.cs" />
     <Compile Include="Utils\WaveGenerator.cs" />

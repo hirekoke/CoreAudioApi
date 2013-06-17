@@ -95,12 +95,13 @@ namespace CoreAudioApiTest
 
                     for (int i = 0; i < _wavWriters.Length; i++)
                     {
-                        _wavWriters[i] = new WaveFileWriter(fmt,
+                        _wavWriters[i] = new WaveFileWriter(fmt.nChannels, (int)fmt.nSamplesPerSec, fmt.wBitsPerSample,
                             DateTime.Now.ToString("yyyyMMdd-HHmmss") + string.Format("_{0}.wav", i));
                     }
 
                     WAVEFORMATEXTENSIBLE rawFmt = new WAVEFORMATEXTENSIBLE(_audioInput.CapFormat);
-                    _wavRawWriter = new WaveFileWriter(rawFmt, DateTime.Now.ToString("yyyyMMdd-HHmmss") + "_raw.wav");
+                    _wavRawWriter = new WaveFileWriter(rawFmt.nChannels, (int)rawFmt.nSamplesPerSec, rawFmt.wBitsPerSample,
+                        DateTime.Now.ToString("yyyyMMdd-HHmmss") + "_raw.wav");
 
                     _writer = new System.IO.BinaryWriter(new System.IO.FileStream("test.wav", System.IO.FileMode.Create));
 

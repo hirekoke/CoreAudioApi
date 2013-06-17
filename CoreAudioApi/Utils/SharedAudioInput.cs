@@ -265,18 +265,15 @@ namespace CoreAudioApi.Utils
                 _audioClient = _capDevice.AudioClient;
                 _capFormat = _audioClient.MixFormat;
 
-                if (shareMode == AudioClientShareMode.Exclusive)
-                {
-                    _capFormat.wFormatTag = WaveFormatTag.WAVE_FORMAT_EXTENSIBLE;
-                    _capFormat.nChannels = 2;
-                    _capFormat.nSamplesPerSec = 44100;
-                    _capFormat.wBitsPerSample = 16;
-                    _capFormat.SubFormat = CoreAudioApi.AudioMediaSubtypes.MEDIASUBTYPE_PCM;
+                _capFormat.wFormatTag = WaveFormatTag.WAVE_FORMAT_EXTENSIBLE;
+                _capFormat.nChannels = 1;
+                _capFormat.nSamplesPerSec = 44100;
+                _capFormat.wBitsPerSample = 16;
+                _capFormat.SubFormat = CoreAudioApi.AudioMediaSubtypes.MEDIASUBTYPE_PCM;
 
-                    _capFormat.wValidBitsPerSample = _capFormat.wBitsPerSample;
-                    _capFormat.nBlockAlign = (ushort)(_capFormat.wBitsPerSample / 8.0 * _capFormat.nChannels);
-                    _capFormat.nAvgBytesPerSec = _capFormat.nSamplesPerSec * _capFormat.nBlockAlign;
-                }
+                _capFormat.wValidBitsPerSample = _capFormat.wBitsPerSample;
+                _capFormat.nBlockAlign = (ushort)(_capFormat.wBitsPerSample / 8.0 * _capFormat.nChannels);
+                _capFormat.nAvgBytesPerSec = _capFormat.nSamplesPerSec * _capFormat.nBlockAlign;
 
                 long tmp1; long tmp2;
                 _audioClient.GetDevicePeriod(out tmp1, out tmp2);

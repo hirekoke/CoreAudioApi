@@ -8,24 +8,20 @@ namespace CoreAudioApi.Utils
 {
     public class WaveGenerator
     {
-        public static byte[] GenerateSine(double freq, int sampleNum, WAVEFORMATEXTENSIBLE fmt)
+        public static byte[] GenerateSine(double freq, int sampleNum, int sampleRate, int bps, int nChannels)
         {
-            if (fmt.wFormatTag != WaveFormatTag.WAVE_FORMAT_PCM)
-            {
-                throw new NotImplementedException("unsupported format");
-            }
             double[] samples = new double[sampleNum];
             for (int i = 0; i < sampleNum; i++)
             {
-                samples[i] = Math.Sin(i * 2 * Math.PI * freq / fmt.nSamplesPerSec);
+                samples[i] = Math.Sin(i * 2 * Math.PI * freq / (double)sampleRate);
             }
             List<byte> ret = new List<byte>();
-            switch (fmt.wBitsPerSample)
+            switch (bps)
             {
                 case 8:
                     for (int i = 0; i < samples.Length; i++)
                     {
-                        for (int j = 0; j < fmt.nChannels; j++)
+                        for (int j = 0; j < nChannels; j++)
                         {
                             ret.Add((byte)((samples[i]*0.5+0.5) * byte.MaxValue));
                         }
@@ -35,7 +31,7 @@ namespace CoreAudioApi.Utils
                 case 16:
                     for (int i = 0; i < samples.Length; i++)
                     {
-                        for (int j = 0; j < fmt.nChannels; j++)
+                        for (int j = 0; j < nChannels; j++)
                         {
                             short s = (short)(samples[i] * short.MaxValue);
                             ret.AddRange(BitConverter.GetBytes(s));
